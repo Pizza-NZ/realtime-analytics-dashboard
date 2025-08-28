@@ -38,8 +38,8 @@ type AnalyticsEvent struct {
 	EventType EventType `json:"event_type"`
 	// UserID is the unique identifier for the user who triggered the event.
 	UserID int64 `json:"user_id"`
-	// Timestamp is the ITC time at which the event was generated.
-	Timestamp time.Time `json:"timestamp"`
+	// CreatedAt is the UTC time at which the event was generated.
+	CreatedAt time.Time `json:"created_at"`
 	// EventData contains additional, unstructured data specific to the event type.
 	// For a PageView, this might include the URL.
 	EventData map[string]any `json:"event_data"`
@@ -80,7 +80,7 @@ func makeEvent() AnalyticsEvent {
 	return AnalyticsEvent{
 		EventType: randomType(),
 		UserID:    randomID(),
-		Timestamp: time.Now().UTC(),
+		CreatedAt: time.Now().UTC(),
 		EventData: randomDataMap(),
 	}
 }

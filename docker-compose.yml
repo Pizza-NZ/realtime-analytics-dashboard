@@ -7,3 +7,18 @@ services:
     ports:
       - "4222:4222"
       - "8222:8222"
+  db:
+    image: timescale/timescaledb
+    container_name: timescale
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - timescaledb_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  timescaledb_data:
