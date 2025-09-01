@@ -1,8 +1,6 @@
 module pizza-nz/realtime-analytics-dashboard
 
-go 1.23.0
-
-toolchain go1.23.12
+go 1.25.0
 
 require (
 	github.com/klauspost/compress v1.18.0 // indirect

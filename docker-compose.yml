@@ -8,7 +8,7 @@ services:
       - "4222:4222"
       - "8222:8222"
   db:
-    image: timescale/timescaledb
+    image: timescale/timescaledb:latest-pg17
     container_name: timescale
     ports:
       - "5432:5432"
