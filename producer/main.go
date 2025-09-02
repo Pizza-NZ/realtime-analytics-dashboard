@@ -4,7 +4,7 @@
 // This tool is designed to be used as a data source for the consumer and
 // dashboard services in the real-time-analytics project. To run it, ensure a
 // NATS server is accessible and execute `go run main.go`.
-package producer
+package main
 
 import (
 	"encoding/json"
