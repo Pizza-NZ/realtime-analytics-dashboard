@@ -5,15 +5,13 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
-	"os"
 	"os/signal"
 	"pizza-nz/realtime-analytics-dashboard/pkg/models"
+	"pizza-nz/realtime-analytics-dashboard/pkg/storage"
 	"syscall"
 	"time"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/nats-io/nats.go"
 )
 
@@ -30,10 +28,11 @@ func main() {
 	defer stop()
 
 	// --- Database Connection ---
-	conn, err := connectDB(ctx)
+	conn, err := storage.ConnectToTimeSeriesDB(ctx)
 	if err != nil {
 		log.Fatalf("failed to connect to database: %v", err)
 	}
+	db := storage.NewTimeSeriesDatabase(conn)
 
 	// --- NATS Subscription Handler
 	handler := func(m *nats.Msg) {
@@ -50,7 +49,7 @@ func main() {
 		insertCtx, cancelInsert := context.WithTimeout(ctx, 5*time.Second)
 		defer cancelInsert()
 
-		if err := insertData(conn, insertCtx, event); err != nil {
+		if err := db.InsertData(insertCtx, event); err != nil {
 			log.Printf("Error inserting data: %v", err)
 			m.Nak()
 		} else {
@@ -90,41 +89,4 @@ func main() {
 	}
 
 	log.Println("Shutdown complete.")
-}
-
-func connectDB(ctx context.Context) (*pgx.Conn, error) {
-	dsn, ok := os.LookupEnv("DATABASE_URL")
-	if !ok {
-		return nil, fmt.Errorf("DATABASE_URL environment variable not set")
-	}
-
-	conn, err := pgx.Connect(ctx, dsn)
-	if err != nil {
-		return nil, fmt.Errorf("unable to connect to database: %w", err)
-	}
-
-	if err = conn.Ping(ctx); err != nil {
-		conn.Close(ctx)
-		return nil, fmt.Errorf("unable to ping database: %w", err)
-	}
-
-	log.Println("Successfully connected to the database.")
-	return conn, nil
-}
-
-func insertData(conn *pgx.Conn, ctx context.Context, event models.AnalyticsEvent) error {
-	tx, err := conn.Begin(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to begin transaction: %w", err)
-	}
-	defer tx.Rollback(ctx)
-
-	sql := `INSERT INTO analytics_events (event_type, user_id, created_at, event_data) 
-VALUES ($1, $2, $3, $4);`
-
-	if _, err := tx.Exec(ctx, sql, event.EventType, event.UserID, event.CreatedAt, event.EventData); err != nil {
-		return fmt.Errorf("failed to execute insert: %w", err)
-	}
-
-	return tx.Commit(ctx)
 }
