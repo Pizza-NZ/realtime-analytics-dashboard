@@ -19,6 +19,15 @@ services:
     volumes:
       - timescaledb_data:/var/lib/postgresql/data
     restart: unless-stopped
+  grafana:
+    image: grafana/grafana-oss:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAF_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAF_PASS}
 
 volumes:
   timescaledb_data:
