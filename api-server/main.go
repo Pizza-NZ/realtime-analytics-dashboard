@@ -48,18 +48,7 @@ func main() {
 		})
 	})
 	router.GET("/ws", func(ctx *gin.Context) {
-		conn, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
-		if err != nil {
-			log.Printf("Failed to upgrade connection: %v", err)
-			return
-		}
-		defer conn.Close()
-		manager.AddConnection(conn)
-		defer manager.RemoveConnection(conn)
-
-		for {
-			// Messages here
-		}
+		handleWebSocketConnection(ctx.Writer, ctx.Request, manager)
 	})
 	router.GET("/stats", func(ctx *gin.Context) {
 		data, err := db.GetTimeBucket(ctx.Request.Context())
@@ -71,6 +60,37 @@ func main() {
 	})
 
 	router.Run()
+}
+
+func handleWebSocketConnection(w http.ResponseWriter, r *http.Request, manager *ConnectionManager) {
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Printf("Failed to upgrade connection: %v", err)
+		return
+	}
+
+	manager.HandleNewClient(conn)
+}
+
+func (manager *ConnectionManager) HandleNewClient(conn *websocket.Conn) {
+	manager.AddConnection(conn)
+	defer func() {
+		manager.RemoveConnection(conn)
+		conn.Close()
+	}()
+
+	// This loop reads messages from the client. When ReadMessage returns an error,
+	// it means the client disconnected, and the loop breaks.
+	for {
+		messageType, message, err := conn.ReadMessage()
+		if err != nil {
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+				log.Printf("Unexpected close error: %v", err)
+			}
+			break
+		}
+		log.Printf("Received message type %d: %s", messageType, message)
+	}
 }
 
 func (manager *ConnectionManager) AddConnection(conn *websocket.Conn) {
