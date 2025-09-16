@@ -1,4 +1,4 @@
-package apiserver
+package main
 
 import (
 	"context"
@@ -58,6 +58,8 @@ func main() {
 		}
 		ctx.JSON(http.StatusOK, data)
 	})
+
+	go manager.RunTicker(context.Background(), db)
 
 	router.Run()
 }

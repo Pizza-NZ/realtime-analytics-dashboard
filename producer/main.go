@@ -38,7 +38,7 @@ func main() {
 		if err != nil {
 			log.Printf("error publishing event: %v", err)
 		} else {
-			log.Printf("published event: %v", err)
+			log.Printf("published event: %v", eventJSON)
 		}
 
 		time.Sleep(1 * time.Second)
