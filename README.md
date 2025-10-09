@@ -20,7 +20,7 @@ To get the project up and running, you will need to have Docker and Docker Compo
 1.  **Clone the repository:**
 
     ```bash
-    git clone https://github.com/your-username/realtime-analytics-dashboard.git
+    git clone https://github.com/pizza-nz/realtime-analytics-dashboard.git
     cd realtime-analytics-dashboard
     ```
 
